@@ -31,6 +31,14 @@ func (l *Lexer) readChar() {
 
 }
 
+func (l *Lexer) peekChar() byte { // same as readChar. doesn't modify l.position and l.ch
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 func (l *Lexer) eatWhitespace() {
 	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
 		l.readChar()
@@ -64,7 +72,33 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.ch {
 	case '=':
-		t = token.New(token.ASSIGN, l.ch)
+		if l.peekChar() == '=' { // TOKEN: generalize this & handle (==)+ (more than 2 equal signs strings)
+			ch := l.ch
+			l.readChar()
+			t = token.Token{Type: token.EQUAL, Literal: string(ch) + string(l.ch)}
+		} else {
+			t = token.New(token.ASSIGN, l.ch)
+		}
+	case '+':
+		t = token.New(token.PLUS, l.ch)
+	case '-':
+		t = token.New(token.MINUS, l.ch)
+	case '!':
+		if l.peekChar() == '=' {
+			ch := l.ch
+			l.readChar()
+			t = token.Token{Type: token.NOT_EQUAL, Literal: string(ch) + string(l.ch)}
+		} else {
+			t = token.New(token.BANG, l.ch)
+		}
+	case '/':
+		t = token.New(token.SLASH, l.ch)
+	case '*':
+		t = token.New(token.ASTERISK, l.ch)
+	case '<':
+		t = token.New(token.LT, l.ch)
+	case '>':
+		t = token.New(token.GT, l.ch)
 	case ';':
 		t = token.New(token.SEMICOLON, l.ch)
 	case '(':
@@ -73,8 +107,6 @@ func (l *Lexer) NextToken() token.Token {
 		t = token.New(token.RPAREN, l.ch)
 	case ',':
 		t = token.New(token.COMMA, l.ch)
-	case '+':
-		t = token.New(token.PLUS, l.ch)
 	case '{':
 		t = token.New(token.LBRACE, l.ch)
 	case '}':
@@ -91,7 +123,7 @@ func (l *Lexer) NextToken() token.Token {
 		} else if utils.IsDigit(l.ch) {
 			t.Type = token.INT
 			t.Literal = l.readNumber()
-			return t 
+			return t
 		} else {
 			t = token.New(token.ILLEGAL, l.ch)
 		}
