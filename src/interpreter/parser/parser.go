@@ -61,7 +61,8 @@ func (p *Parser) parseStatement() nodes.Statement {
 	switch p.current.Type {
 	case token.LET:
 		return p.parseLetStatement()
-
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 	}
@@ -97,4 +98,18 @@ func (p *Parser) parseLetStatement() *nodes.LetStatement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) parseReturnStatement() *nodes.ReturnStatement {
+
+	stmt := &nodes.ReturnStatement{Token: p.current}
+
+	p.nextToken()
+
+	for p.current.Type != token.SEMICOLON {
+		p.nextToken()
+	}
+
+	return stmt
+
 }
